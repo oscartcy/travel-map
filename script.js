@@ -70,7 +70,7 @@ geocode('hong kong').then(function(result) {
         .tween("rotate", function() {
             var p = d3.geo.centroid(result),
             r = d3.interpolate(projection.rotate(), [-p[0], -p[1]]);
-            console.log(countries[0]);
+
             return function(t) {
                 projection.rotate(r(t));
                 svg.selectAll("path").attr("d", path);
