@@ -24,7 +24,7 @@ svg.call(
 
 var countries;
 
-d3.json("/data/world-110m.json", function(error, world) {
+d3.json("data/world-110m.json", function(error, world) {
     svg.append("path")
         .datum(topojson.feature(world, world.objects.land))
         .attr("class", "land")
