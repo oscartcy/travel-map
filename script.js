@@ -27,4 +27,9 @@ d3.json("/data/world-110m.json", function(error, world) {
         .datum(topojson.feature(world, world.objects.land))
         .attr("class", "land")
         .attr("d", path);
+
+    svg.append("path")
+        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+        .attr("class", "boundary")
+        .attr("d", path);
 });
