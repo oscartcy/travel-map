@@ -1,7 +1,7 @@
 var width = 960,
     height = 500;
 
-var hkLocation = {"type":"Point","coordinates":[114.1628131,22.2793278],"name":"Hong Kong"};
+var places = ["Hong Kong", "Oslo, Norway", "Reykjavik, Iceland", "Amsterdam, Nederland"];
 
 var locationPointSize = 3.0;
 
@@ -11,7 +11,8 @@ var projection = d3.geo.orthographic()
     .clipAngle(90);
 
 var path = d3.geo.path()
-    .projection(projection);
+    .projection(projection)
+    .pointRadius(locationPointSize);
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
@@ -46,20 +47,27 @@ d3.json("data/world-110m.json", function(error, world) {
 
     countries = topojson.feature(world, world.objects.countries).features;
 
-    // point HK
-    var points = svg.insert("path")
-        .datum(hkLocation)
-        .attr("class", "point")
-        .attr("d", path.pointRadius(locationPointSize));
+    batchGeocode(places).then(function(locations) {
+        console.log("locations: ", locations);
 
-    points.call(tip);
+        var points = svg.selectAll(".point")
+            .data(locations)
+            .enter()
+            .insert("path")
+            .attr("class", "point")
+            .attr("d", function(d) {
+                return path(d); 
+            });
 
-    points.on('mouseover', tip.show)
-        .on('mouseout', tip.hide);
+        points.call(tip);
+
+        points.on('mouseover', tip.show)
+            .on('mouseout', tip.hide);
+
+    });
 });
 
-
-
+// service for gecoding
 var geocode = function (q) {
     return $.ajax("http://nominatim.openstreetmap.org/search/", {
         data: {
@@ -75,10 +83,17 @@ var geocode = function (q) {
         //     lon: parseFloat(data[0].lon, 10)
         // };
         // return [parseFloat(data[0].lat, 10), parseFloat(data[0].lon, 10)];
-        return { "type": "Point", "coordinates": [parseFloat(data[0].lon, 10), parseFloat(data[0].lat, 10)] };
+        return { "type": "Point", "coordinates": [parseFloat(data[0].lon, 10), parseFloat(data[0].lat, 10)] ,"name": q};
     });
 };
 
+var batchGeocode = function(places) {
+    return $.when.apply($.when, places.map(geocode)).then(function() {
+        return Array.prototype.slice.apply(arguments);
+    });
+};
+
+// POC on rotating the globe
 geocode('hong kong').then(function(result) {
     console.log('geocoding: ', result);
 
