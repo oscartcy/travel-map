@@ -1,7 +1,9 @@
 var width = 960,
     height = 500;
 
-var dragFactor = 1;
+var hkLocation = {"type":"Point","coordinates":[114.1628131,22.2793278],"name":"Hong Kong"};
+
+var locationPointSize = 3.0;
 
 var projection = d3.geo.orthographic()
     .scale(250)
@@ -14,6 +16,13 @@ var path = d3.geo.path()
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
+
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return "<strong>" + d.name + "</strong>";
+    })
 
 svg.call(
     d3.geo.zoom().projection(projection)
@@ -36,7 +45,20 @@ d3.json("data/world-110m.json", function(error, world) {
         .attr("d", path);
 
     countries = topojson.feature(world, world.objects.countries).features;
+
+    // point HK
+    var points = svg.insert("path")
+        .datum(hkLocation)
+        .attr("class", "point")
+        .attr("d", path.pointRadius(locationPointSize));
+
+    points.call(tip);
+
+    points.on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
 });
+
+
 
 var geocode = function (q) {
     return $.ajax("http://nominatim.openstreetmap.org/search/", {
