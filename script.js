@@ -28,7 +28,7 @@ var tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-10, 0])
     .html(function(d) {
-        return "<strong>" + d.name + "</strong>";
+        return "<strong>" + d.properties.name + "</strong>";
     })
 
 svg.call(
@@ -96,7 +96,7 @@ d3.json("data/world-110m.json", function(error, world) {
             .append("text")
             .attr("class", "label")
             .text(function(d) {
-                return d.name; 
+                return d.properties.name; 
             });
         position_labels();
 
@@ -223,32 +223,6 @@ function perp(p0, p1) {
       u01d = Math.sqrt(u01x * u01x + u01y * u01y);
   return [u01x / u01d, u01y / u01d];
 }
-
-// service for gecoding
-var geocode = function (q) {
-    return $.ajax("http://nominatim.openstreetmap.org/search/", {
-        data: {
-            q: q,
-            format: "json"
-        }
-    }).then(function(data) {
-        if (!data || !data[0]) {
-            throw new Error("Geocoding '" + q + "' failed.");
-        }
-        // return {
-        //     lat: parseFloat(data[0].lat, 10),
-        //     lon: parseFloat(data[0].lon, 10)
-        // };
-        // return [parseFloat(data[0].lat, 10), parseFloat(data[0].lon, 10)];
-        return { "type": "Point", "coordinates": [parseFloat(data[0].lon, 10), parseFloat(data[0].lat, 10)] ,"name": q};
-    });
-};
-
-var batchGeocode = function(places) {
-    return $.when.apply($.when, places.map(geocode)).then(function() {
-        return Array.prototype.slice.apply(arguments);
-    });
-};
 
 // POC on rotating the globe
 geocode('hong kong').then(function(result) {
