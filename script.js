@@ -18,10 +18,11 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var color = d3.interpolateLab("#008000", "#c83a22");
+// var color = d3.interpolateLab("#008000", "#c83a22");
 // var color = d3.interpolateLab("#8fc400", "#c9e800");
+var color = d3.interpolateLab("#00b247", "#fff600");
 // var color = d3.interpolateLab("#38afff", "#78d85b");
-var pathWidth = 4;
+var pathWidth = 2;
 var pathPrecision = 4;
 
 var tip = d3.tip()
@@ -36,16 +37,15 @@ svg.call(
         .on("zoom", function() {
             svg.selectAll("path:not(.markerPath):not(.path)").attr("d", path);
 
-            var paths = svg.select(".paths").selectAll(".path").data(quad(sample(path(pathsFeature), pathPrecision)));
+            var paths = svg.select(".paths")
+                .selectAll(".path")
+                .data(quad(sample(path(pathsFeature), pathPrecision)));
 
-            paths
-                .style("fill", function(d) { return color(d.t); })
-                .style("stroke", function(d) { return color(d.t); })
-                .attr("d", function(d) { return lineJoin(d[0], d[1], d[2], d[3], pathWidth); })
-                .enter()
+            paths.enter()
                 .append("path")
-                .attr("class", "path")
-                .style("fill", function(d) { return color(d.t); })
+                .attr("class", "path");
+
+            paths.style("fill", function(d) { return color(d.t); })
                 .style("stroke", function(d) { return color(d.t); })
                 .attr("d", function(d) { return lineJoin(d[0], d[1], d[2], d[3], pathWidth); });
 
@@ -243,17 +243,15 @@ geocode('hong kong').then(function(result) {
                 projection.rotate(r(t));
                 svg.selectAll("path:not(.markerPath):not(.path)").attr("d", path);
 
-                var paths = svg.select(".paths").selectAll(".path").data(quad(sample(path(pathsFeature), pathPrecision)));
+                var paths = svg.select(".paths")
+                    .selectAll(".path")
+                    .data(quad(sample(path(pathsFeature), pathPrecision)));
 
-                paths
-                    .style("fill", function(d) { return color(d.t); })
-                    .style("stroke", function(d) { return color(d.t); })
-                    .attr("d", function(d) { return lineJoin(d[0], d[1], d[2], d[3], pathWidth); })
-                    .enter()
+                paths.enter()
                     .append("path")
-                    .attr("class", "path")
-                    // .attr("marker-mid", "url(#marker)")
-                    .style("fill", function(d) { return color(d.t); })
+                    .attr("class", "path");
+
+                paths.style("fill", function(d) { return color(d.t); })
                     .style("stroke", function(d) { return color(d.t); })
                     .attr("d", function(d) { return lineJoin(d[0], d[1], d[2], d[3], pathWidth); });
 
