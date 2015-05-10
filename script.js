@@ -59,13 +59,40 @@ d3.json("data/world-110m.json", function(error, world) {
                 return path(d); 
             });
 
+
+
+        console.log('compute paths: ', computePathsFeature(locations));
+
+        var pathsFeature = computePathsFeature(locations);
+
+        var paths = svg.selectAll(".path")
+            .data(pathsFeature)
+            .enter()
+            .insert("path")
+            .attr("class", "path")
+            .attr("d", function(d) {
+                return path(d); 
+            });
+
         points.call(tip);
 
         points.on('mouseover', tip.show)
             .on('mouseout', tip.hide);
-
     });
 });
+
+var computePathsFeature = function(locations) {
+    var coors = $.map(locations,
+        function(ele, i) {
+            return [ele.coordinates];
+        }
+    );
+
+    return [{
+        "type": "LineString",
+        "coordinates": coors
+    }];
+}
 
 // service for gecoding
 var geocode = function (q) {
