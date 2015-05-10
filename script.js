@@ -25,10 +25,24 @@ var tip = d3.tip()
         return "<strong>" + d.name + "</strong>";
     })
 
+// // Per-type markers, as they don't inherit styles.
+// svg.append("defs").append("marker")
+//     .attr("id", "marker")
+//     .attr("viewBox", "0 -5 10 10")
+//     .attr("refX", 15)
+//     .attr("refY", -1.5)
+//     .attr("markerWidth", 6)
+//     .attr("markerHeight", 6)
+//     .attr("orient", "auto")
+//     .append("path")
+//     .attr("class", "markerPath")
+//     .attr("d", "M0,-5L10,0L0,5");
+
 svg.call(
     d3.geo.zoom().projection(projection)
         .on("zoom", function() {
-            svg.selectAll("path").attr("d", path);
+            svg.selectAll("path:not(.markerPath)").attr("d", path);
+            position_labels();
         })
 );
 
@@ -48,28 +62,45 @@ d3.json("data/world-110m.json", function(error, world) {
     countries = topojson.feature(world, world.objects.countries).features;
 
     batchGeocode(places).then(function(locations) {
-        console.log("locations: ", locations);
-
-        var points = svg.selectAll(".point")
-            .data(locations)
-            .enter()
-            .insert("path")
-            .attr("class", "point")
-            .attr("d", function(d) {
-                return path(d); 
-            });
-
-
-
         console.log('compute paths: ', computePathsFeature(locations));
 
         var pathsFeature = computePathsFeature(locations);
 
-        var paths = svg.selectAll(".path")
+        var paths = svg
+            .append("g")
+            .attr("class", "paths")
+            .selectAll(".path")
             .data(pathsFeature)
             .enter()
-            .insert("path")
+            .append("path")
             .attr("class", "path")
+            // .attr("marker-mid", "url(#marker)")
+            .attr("d", function(d) {
+                return path(d); 
+            });
+
+        svg.append("g")
+            .attr("class", "labels")
+            .selectAll(".label")
+            .data(locations)
+            .enter()
+            .append("text")
+            .attr("class", "label")
+            .text(function(d) {
+                return d.name; 
+            });
+        position_labels();
+
+        console.log("locations: ", locations);
+
+        var points = svg
+            .append("g")
+            .attr("class", "points")
+            .selectAll(".point")
+            .data(locations)
+            .enter()
+            .append("path")
+            .attr("class", "point")
             .attr("d", function(d) {
                 return path(d); 
             });
@@ -92,6 +123,32 @@ var computePathsFeature = function(locations) {
         "type": "LineString",
         "coordinates": coors
     }];
+}
+
+function position_labels() {
+    var centerPos = projection.invert([width/2,height/2]);
+
+    var arc = d3.geo.greatArc();
+
+    svg.selectAll(".label")
+    .attr("text-anchor",function(d) {
+        var x = projection(d.coordinates)[0];
+        return x < width/2-20 ? "end" :
+        x < width/2+20 ? "middle" :
+        "start"
+    })
+    .attr("transform", function(d) {
+        var loc = projection(d.coordinates),
+        x = loc[0],
+        y = loc[1];
+        var offset = x < width/2 ? -5 : 5;
+        return "translate(" + (x+offset) + "," + (y-2) + ")"
+    })
+    .style("display",function(d) {
+        var d = arc.distance({source: d.coordinates, target: centerPos});
+        return (d > 1.57) ? 'none' : 'inline';
+    })
+
 }
 
 // service for gecoding
@@ -137,7 +194,8 @@ geocode('hong kong').then(function(result) {
 
             return function(t) {
                 projection.rotate(r(t));
-                svg.selectAll("path").attr("d", path);
+                svg.selectAll("path:not(.markerPath)").attr("d", path);
+                position_labels();
             };
         });
 
